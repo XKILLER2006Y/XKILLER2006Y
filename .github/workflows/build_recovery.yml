@@ -183,8 +183,8 @@ jobs:
           echo "Launching build for target: $LUNCH_TARGET"
           lunch $LUNCH_TARGET
 
-          # Build vendor_boot (GKI v4 recovery) with fallback to recoveryimage
-          mka vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
+          # Build recovery image & vendor_boot image
+          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
 
           echo "=== Ccache Statistics ==="
           ccache -s
@@ -192,10 +192,9 @@ jobs:
       - name: Prepare Build Artifacts
         run: |
           mkdir -p ~/artifacts
-          find ~/work/out/target/product/X6871/ \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \;
+          find ~/work/out/target/product/ -type f \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \;
           echo "=== Prepared Artifacts ==="
           ls -lh ~/artifacts/
-          # Fail if no artifacts were produced
           if [ -z "$(ls -A ~/artifacts/)" ]; then
             echo "ERROR: No build artifacts found!"
             exit 1
