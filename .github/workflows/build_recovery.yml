@@ -127,7 +127,7 @@ jobs:
             repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
           fi
 
-          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --depth=1
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
       - name: Clone Missing Dependencies (gflags)
         run: |
