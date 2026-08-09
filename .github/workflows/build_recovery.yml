@@ -139,10 +139,23 @@ jobs:
             git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 external/gflags
           fi
 
-      - name: Copy Device Tree
+      - name: Copy Device Tree & Fetch Prebuilt Assets
         run: |
           mkdir -p ~/work/device/infinix/X6871
           cp -r $GITHUB_WORKSPACE/device/infinix/X6871/* ~/work/device/infinix/X6871/
+          mkdir -p ~/work/device/infinix/X6871/prebuilt
+          cd ~/work/device/infinix/X6871/prebuilt
+          if [ ! -f "dtbo.img" ]; then
+            curl -sSL "https://github.com/sheikhmehraann/android_device_transsion_x6871-pbrp-twrp/releases/download/V1/dtbo.img" -o dtbo.img || true
+          fi
+          if [ ! -f "dtb" ]; then
+            curl -sSL "https://github.com/sheikhmehraann/android_device_transsion_x6871-pbrp-twrp/releases/download/V1/dtb" -o dtb || true
+          fi
+          if [ ! -f "kernel" ]; then
+            curl -sSL "https://github.com/sheikhmehraann/android_device_transsion_x6871-pbrp-twrp/releases/download/V1/kernel" -o kernel || true
+          fi
+          echo "=== Prebuilt Directory Contents ==="
+          ls -lh ~/work/device/infinix/X6871/prebuilt/
 
       - name: Compile Recovery Image
         run: |
