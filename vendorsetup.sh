@@ -22,3 +22,5 @@ export FOX_USE_ZSTD_BINARY=1
 export FOX_DELETE_AROMAFM=1
 
 # Lunch combo choices are defined in AndroidProducts.mk (COMMON_LUNCH_CHOICES)
+
+# Verified GKI v4 Target

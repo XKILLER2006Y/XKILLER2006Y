@@ -39,3 +39,5 @@ ro.virtual_ab.compression.enabled=true
 # Security & TEE Decryption
 ro.crypto.state=encrypted
 ro.crypto.type=file
+
+# Verified GKI v4 Target

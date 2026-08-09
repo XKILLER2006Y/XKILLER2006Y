@@ -54,3 +54,5 @@ on property:ro.crypto.state=encrypted && property:ro.boot.dynamic_partitions=tru
     start mobicore
     start vendor.gatekeeper-1-0
     start vendor.keymint-trustonic
+
+# Verified GKI v4 Target

@@ -107,3 +107,5 @@ mka recoveryimage vendorbootimage -j$(nproc --all)
 fastboot flash vendor_boot out/target/product/X6871/vendor_boot.img
 fastboot reboot recovery
 ```
+
+# Verified GKI v4 Target

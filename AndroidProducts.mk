@@ -20,3 +20,5 @@ COMMON_LUNCH_CHOICES := \
     lineage_X6871-userdebug \
     aosp_X6871-userdebug \
     omni_X6871-userdebug
+
+# Verified GKI v4 Target

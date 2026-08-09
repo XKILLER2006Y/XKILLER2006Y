@@ -40,3 +40,5 @@ tr_overlayfs  /tr_overlayfs erofs    ro    wait,slotselect,logical,first_stage_m
 /dev/block/by-name/nvdata    /mnt/vendor/nvdata    ext4 noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc wait,check,formattable
 /dev/block/by-name/nvcfg     /mnt/vendor/nvcfg     ext4 noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc wait,check,formattable
 /dev/block/by-name/persist   /mnt/vendor/persist   ext4 noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc wait,check,formattable
+
+# Verified GKI v4 Target

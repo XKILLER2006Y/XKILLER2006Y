@@ -168,3 +168,5 @@ SHRP_OFFICIAL := false
 # Lineage & AOSP Recovery Flags
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
 TARGET_RECOVERY_UI_MARGIN_HEIGHT := 126
+
+# Verified GKI v4 Target

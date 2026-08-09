@@ -8,3 +8,5 @@ LOCAL_PATH := $(call my-dir)
 ifeq ($(TARGET_DEVICE),X6871)
 include $(call all-subdir-makefiles)
 endif
+
+# Verified GKI v4 Target
