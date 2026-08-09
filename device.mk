@@ -25,9 +25,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=480 \
     ro.recovery.ui.margin_height=126
 
-# Init Scripts & Partition Table Installation
+# Init Scripts Installation
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6895.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6895.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6896.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6896.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.usb.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.usb.rc \
-    $(LOCAL_PATH)/recovery.fstab:$(TARGET_COPY_OUT_RECOVERY)/root/etc/recovery.fstab
+    $(LOCAL_PATH)/recovery/root/init.recovery.mt6895.rc:$(TARGET_COPY_OUT_RECOVERY)/init.recovery.mt6895.rc \
+    $(LOCAL_PATH)/recovery/root/init.recovery.mt6896.rc:$(TARGET_COPY_OUT_RECOVERY)/init.recovery.mt6896.rc \
+    $(LOCAL_PATH)/recovery/root/init.recovery.usb.rc:$(TARGET_COPY_OUT_RECOVERY)/init.recovery.usb.rc

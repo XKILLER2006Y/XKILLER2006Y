@@ -2,9 +2,10 @@
 # System Properties for Infinix GT 20 Pro (X6871) Recovery
 #
 
-# Hardware Platform
-ro.board.platform=mt6896
-ro.hardware=mt6896
+# Hardware Platform (MT6896/Dimensity 8200 uses mt6895 BSP platform code)
+ro.board.platform=mt6895
+ro.hardware=mt6895
+ro.product.board=Infinix-X6871
 
 # Display & Refresh Rate Lock (Raydium RM69220 144Hz AMOLED)
 ro.sf.lcd_density=480

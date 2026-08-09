@@ -16,7 +16,7 @@ on:
           - LineageOS
           - AOSP
       MANIFEST_BRANCH:
-        description: 'Manifest Branch (Leave empty for engine default: Fox=fox_12.1, TWRP=twrp-12.1, PBRP=pb-12.1, SHRP=shrp-12.1, Lineage=lineage-19.1)'
+        description: 'Branch (Leave empty for auto-detect: Fox=fox_12.1, TWRP=twrp-12.1, PBRP=android-12.1, SHRP=v3.2_12.1, Lineage=lineage-21.0, AOSP=twrp-12.1)'
         required: false
         default: ''
         type: string
@@ -24,7 +24,7 @@ on:
 jobs:
   build:
     name: Build Recovery Image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
@@ -81,9 +81,10 @@ jobs:
             case "$ENGINE" in
               "OrangeFox") BRANCH="fox_12.1" ;;
               "TWRP") BRANCH="twrp-12.1" ;;
-              "PitchBlack") BRANCH="pb-12.1" ;;
-              "SkyHawk") BRANCH="shrp-12.1" ;;
-              "LineageOS"|"AOSP") BRANCH="lineage-19.1" ;;
+              "PitchBlack") BRANCH="android-12.1" ;;
+              "SkyHawk") BRANCH="v3.2_12.1" ;;
+              "LineageOS") BRANCH="lineage-21.0" ;;
+              "AOSP") BRANCH="twrp-12.1" ;;
               *) BRANCH="fox_12.1" ;;
             esac
           fi
@@ -99,7 +100,9 @@ jobs:
             repo init -u https://github.com/PitchBlackRecoveryProject/manifest_pb.git -b $BRANCH --depth=1
           elif [ "$ENGINE" = "SkyHawk" ]; then
             repo init -u https://github.com/SHRP/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
-          elif [ "$ENGINE" = "LineageOS" ] || [ "$ENGINE" = "AOSP" ]; then
+          elif [ "$ENGINE" = "LineageOS" ]; then
+            repo init -u https://github.com/LineageOS/android.git -b $BRANCH --depth=1
+          elif [ "$ENGINE" = "AOSP" ]; then
             repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
           fi
 
