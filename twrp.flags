@@ -1,0 +1,22 @@
+# Production TWRP & OrangeFox Partition Flags for Infinix GT 20 Pro (X6871)
+
+/boot            emmc    /dev/block/by-name/boot            flags=display="Boot";slotselect;backup=1;flashimg=1
+/vendor_boot     emmc    /dev/block/by-name/vendor_boot     flags=display="Vendor Boot";slotselect;backup=1;flashimg=1
+/dtbo            emmc    /dev/block/by-name/dtbo            flags=display="DTBO";slotselect;backup=1;flashimg=1
+/vbmeta          emmc    /dev/block/by-name/vbmeta          flags=display="VBMeta";slotselect;backup=1;flashimg=1
+/vbmeta_system   emmc    /dev/block/by-name/vbmeta_system   flags=display="VBMeta System";slotselect;backup=1;flashimg=1
+/vbmeta_vendor   emmc    /dev/block/by-name/vbmeta_vendor   flags=display="VBMeta Vendor";slotselect;backup=1;flashimg=1
+
+/nvram           emmc    /dev/block/by-name/nvram           flags=display="NVRAM";backup=1
+/nvdata          ext4    /dev/block/by-name/nvdata          flags=display="NVData";backup=1
+/nvcfg           ext4    /dev/block/by-name/nvcfg           flags=display="NVCfg";backup=1
+/persist         ext4    /dev/block/by-name/persist         flags=display="Persist";backup=1
+/protect_f       ext4    /dev/block/by-name/protect1        flags=display="Protect F";backup=1
+/protect_s       ext4    /dev/block/by-name/protect2        flags=display="Protect S";backup=1
+/seccfg          emmc    /dev/block/by-name/seccfg          flags=display="Seccfg";backup=1
+/proinfo         emmc    /dev/block/by-name/proinfo         flags=display="Proinfo";backup=1
+/tee1            emmc    /dev/block/by-name/tee1            flags=display="Trustonic TEE 1";backup=1
+/tee2            emmc    /dev/block/by-name/tee2            flags=display="Trustonic TEE 2";backup=1
+
+/microSD         auto    /devices/platform/soc/11240000.mmc*                      flags=display="MicroSD";storage;wipeingui;removable
+/usb_otg         auto    /devices/platform/soc/11201000.usb0/11200000.xhci*       flags=display="USB OTG";storage;wipeingui;removable

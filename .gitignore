@@ -1,0 +1,9 @@
+# Git Ignore Rules for Recovery Device Tree
+*.pyc
+*.swp
+*.bak
+*~
+.DS_Store
+out/
+.idea/
+.vscode/

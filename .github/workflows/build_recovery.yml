@@ -1,0 +1,87 @@
+name: Build Universal Recovery (TWRP / OrangeFox / PBRP / SHRP / Lineage)
+
+on:
+  workflow_dispatch:
+    inputs:
+      RECOVERY_ENGINE:
+        description: 'Select Recovery Framework to Build'
+        required: true
+        default: 'OrangeFox'
+        type: choice
+        options:
+          - OrangeFox
+          - TWRP
+          - PitchBlack
+          - SkyHawk
+          - LineageOS
+          - AOSP
+      MANIFEST_BRANCH:
+        description: 'Manifest Branch (e.g. fox_12.1, twrp-12.1, pb-12.1, shrp-12.1, lineage-19.1)'
+        required: true
+        default: 'fox_12.1'
+
+jobs:
+  build:
+    name: Build Recovery Image
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Device Tree
+        uses: actions/checkout@v4
+        with:
+          path: device/infinix/X6871
+
+      - name: Setup Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf lib32ncurses5-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+
+      - name: Sync Recovery Manifest
+        run: |
+          mkdir -p ~/work && cd ~/work
+          ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
+          BRANCH="${{ github.event.inputs.MANIFEST_BRANCH }}"
+          
+          if [ "$ENGINE" = "OrangeFox" ]; then
+            repo init -u https://gitlab.com/OrangeFox/Manifest.git -b $BRANCH
+          elif [ "$ENGINE" = "TWRP" ]; then
+            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH
+          elif [ "$ENGINE" = "PitchBlack" ]; then
+            repo init -u https://github.com/PitchBlackRecoveryProject/manifest_pb.git -b $BRANCH
+          elif [ "$ENGINE" = "SkyHawk" ]; then
+            repo init -u https://github.com/SHRP/platform_manifest_twrp_aosp.git -b $BRANCH
+          elif [ "$ENGINE" = "LineageOS" ] || [ "$ENGINE" = "AOSP" ]; then
+            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH
+          fi
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+      - name: Copy Device Tree
+        run: |
+          mkdir -p ~/work/device/infinix/X6871
+          cp -r $GITHUB_WORKSPACE/device/infinix/X6871/* ~/work/device/infinix/X6871/
+
+      - name: Compile Recovery Image
+        run: |
+          cd ~/work
+          source build/envsetup.sh
+          ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
+          
+          if [ "$ENGINE" = "OrangeFox" ]; then
+            lunch fox_X6871-userdebug
+          elif [ "$ENGINE" = "TWRP" ]; then
+            lunch twrp_X6871-userdebug
+          elif [ "$ENGINE" = "PitchBlack" ]; then
+            lunch pbrp_X6871-userdebug
+          elif [ "$ENGINE" = "SkyHawk" ]; then
+            lunch shrp_X6871-userdebug
+          elif [ "$ENGINE" = "LineageOS" ]; then
+            lunch lineage_X6871-userdebug
+          elif [ "$ENGINE" = "AOSP" ]; then
+            lunch aosp_X6871-userdebug
+          fi
+          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
+
+      - name: Upload Recovery Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Recovery-Image-${{ github.event.inputs.RECOVERY_ENGINE }}-X6871
+          path: /home/runner/work/out/target/product/X6871/*.img

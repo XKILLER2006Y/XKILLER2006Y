@@ -1,0 +1,126 @@
+#
+# Copyright (C) 2026 Universal Recovery Project
+# Universal BoardConfig for Infinix GT 20 Pro (X6871)
+# Platform: MediaTek Dimensity 8200 Ultimate (MT6896 / MT6895)
+#
+
+DEVICE_PATH := device/infinix/X6871
+
+# Architecture & CPU Configuration
+TARGET_ARCH := arm64
+TARGET_ARCH_VARIANT := armv8-a
+TARGET_CPU_ABI := arm64-v8a
+TARGET_CPU_ABI2 :=
+TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT_RUNTIME := cortex-a55
+
+TARGET_2ND_ARCH := arm
+TARGET_2ND_ARCH_VARIANT := armv7-a-neon
+TARGET_2ND_CPU_ABI := armeabi-v7a
+TARGET_2ND_CPU_ABI2 := armeabi
+TARGET_2ND_CPU_VARIANT := generic
+TARGET_2ND_CPU_VARIANT_RUNTIME := cortex-a55
+
+# Platform / GPU / Security
+TARGET_BOOTLOADER_BOARD_NAME := mt6896
+TARGET_BOARD_PLATFORM := mt6896
+TARGET_BOARD_PLATFORM_GPU := mali-g610
+BOARD_VENDOR := infinix
+
+# Kernel & Vendor Boot Header Configuration
+BOARD_KERNEL_PAGESIZE := 4096
+BOARD_BOOT_HEADER_VERSION := 4
+BOARD_MKBOOTIMG_ARGS := --header_version $(BOARD_BOOT_HEADER_VERSION)
+BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
+BOARD_PREBUILT_DTBIMAGE := $(DEVICE_PATH)/prebuilt/dtb
+
+# Dynamic Super Partitions Setup (Standard + Transsion Regional Extensions)
+BOARD_SUPER_PARTITION_SIZE := 9126805504
+BOARD_SUPER_PARTITION_GROUPS := main
+BOARD_MAIN_SIZE := 9122611200
+BOARD_MAIN_PARTITION_LIST := \
+    system \
+    system_ext \
+    vendor \
+    product \
+    vendor_dlkm \
+    odm_dlkm \
+    tr_mi \
+    tr_theme \
+    tr_region \
+    tr_company \
+    tr_carrier \
+    tr_product \
+    tr_preload \
+    tr_overlayfs
+
+# File Systems & EROFS Support
+BOARD_HAS_LARGE_FILESYSTEM := true
+BOARD_SYSTEMIMAGE_PARTITION_TYPE := erofs
+BOARD_VENDORIMAGE_PARTITION_TYPE := erofs
+BOARD_PRODUCTIMAGE_PARTITION_TYPE := erofs
+BOARD_SYSTEM_EXTIMAGE_PARTITION_TYPE := erofs
+BOARD_VENDOR_DLKMIMAGE_PARTITION_TYPE := erofs
+BOARD_ODM_DLKMIMAGE_PARTITION_TYPE := erofs
+TARGET_USERIMAGES_USE_F2FS := true
+TARGET_USERIMAGES_USE_EXT4 := true
+
+# Virtual A/B Partitioning
+AB_OTA_UPDATER := true
+BOARD_USES_RECOVERY_AS_BOOT := false
+BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true
+
+# Display & Graphics Configuration (144Hz FHD+ 480 DPI CSOT AMOLED)
+TARGET_SCREEN_HEIGHT := 2400
+TARGET_SCREEN_WIDTH := 1080
+TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
+TARGET_SCREEN_DENSITY := 480
+TW_THEME := portrait_xhdpi
+TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+TW_MAX_BRIGHTNESS := 2047
+TW_DEFAULT_BRIGHTNESS := 1200
+
+# Universal TWRP Feature Flags
+RECOVERY_SDCARD_ON_DATA := true
+TW_EXCLUDE_DEFAULT_USB_INIT := true
+TW_EXTRA_LANGUAGES := true
+TW_INCLUDE_CRYPTO := true
+TW_INCLUDE_NTFS_3G := true
+TW_USE_TOOLBOX := true
+TW_INPUT_BLACKLIST := hbtp_vm
+TW_HAS_MTP := true
+
+# OrangeFox Recovery Specific Flags
+FOX_VERSION := R12.0
+FOX_BUILD_TYPE := Unofficial
+FOX_RECOVERY_INSTALL_PARTITION := /dev/block/by-name/vendor_boot
+FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER := 1
+FOX_REPLACE_BUSYBOX_PS := 1
+FOX_REPLACE_TOOLBOX_GETSEBOOL := 1
+FOX_USE_TAR_BINARY := 1
+FOX_USE_SED_BINARY := 1
+FOX_USE_XZ_UTILS := 1
+FOX_USE_NANO_EDITOR := 1
+OF_SCREEN_H := 2400
+OF_STATUS_INDENT_LEFT := 48
+OF_STATUS_INDENT_RIGHT := 48
+OF_USE_MAGISKBIN_BUILD := 1
+OF_KEEP_FORCED_ENCRYPTION := 1
+OF_PATCH_AVB20 := 1
+
+# PitchBlack Recovery (PBRP) Flags
+PB_BUILD_TYPE := UNOFFICIAL
+PB_DISABLE_LIGHTS := 1
+PB_PREVENT_SD_CARD_MOUNT := 0
+
+# SkyHawk Recovery (SHRP) Flags
+SHRP_PATH := device/infinix/X6871
+SHRP_MAINTAINER := AntiGravity
+SHRP_DEVICE_CODE := X6871
+SHRP_EDITION := Classic
+SHRP_OFFICIAL := false
+
+# Lineage & AOSP Recovery Flags
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+TARGET_RECOVERY_UI_MARGIN_HEIGHT := 126

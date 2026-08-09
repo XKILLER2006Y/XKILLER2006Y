@@ -1,0 +1,29 @@
+# System Properties for Infinix GT 20 Pro (X6871) Universal Recovery
+ro.product.brand=Infinix
+ro.product.manufacturer=INFINIX
+ro.product.model=Infinix X6871
+ro.product.device=X6871
+
+ro.board.platform=mt6896
+ro.hardware=mt6896
+ro.hardware.egl=meow
+ro.hardware.vulkan=mali
+
+ro.hardware.gatekeeper=trustonic
+ro.hardware.kmsetkey=trustonic
+ro.hardware.paytrigger=trustonic
+
+ro.sf.lcd_density=480
+ro.vendor.tran.display.pixelworks.support=1
+
+sys.usb.controller=11201000.usb0
+sys.usb.ffs.aio_compat=0
+ro.sys.usb.storage.type=mtp
+
+ro.boot.dynamic_partitions=true
+ro.virtual_ab.enabled=true
+ro.virtual_ab.compression.enabled=true
+
+ro.crypto.state=encrypted
+ro.crypto.type=file
+ro.crypto.volume.filenames_mode=aes-256-cts
