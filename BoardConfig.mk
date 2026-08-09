@@ -24,11 +24,17 @@ TARGET_2ND_CPU_VARIANT_RUNTIME := cortex-a55
 TARGET_SUPPORTS_64_BIT_APPS := true
 TARGET_SUPPORTS_32_BIT_APPS := true
 
-# Platform / GPU / Security
+# Platform / GPU / Security / Copy Out Targets
 TARGET_BOOTLOADER_BOARD_NAME := mt6896
 TARGET_BOARD_PLATFORM := mt6896
 TARGET_BOARD_PLATFORM_GPU := mali-g610
 BOARD_VENDOR := infinix
+
+TARGET_COPY_OUT_VENDOR := vendor
+TARGET_COPY_OUT_PRODUCT := product
+TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+TARGET_COPY_OUT_VENDOR_DLKM := vendor_dlkm
+TARGET_COPY_OUT_ODM_DLKM := odm_dlkm
 
 # Kernel & Vendor Boot Header Configuration
 BOARD_KERNEL_BASE := 0x40078000
