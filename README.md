@@ -15,10 +15,10 @@ Unified, production-grade custom recovery device tree for compiling **TWRP**, **
 | :--- | :--- | :--- | :--- | :--- | :---: |
 | **TWRP (11 / 12 / 12.1)** | `twrp_X6871.mk` | `twrp_X6871-userdebug` | `vendor_boot` | `twrp-12.1` | **READY** |
 | **OrangeFox Recovery (R11 / R12)** | `fox_X6871.mk` | `fox_X6871-userdebug` | `vendor_boot` | `fox_12.1` | **READY** |
-| **PitchBlack Recovery (PBRP)** | `pbrp_X6871.mk` | `pbrp_X6871-userdebug` | `vendor_boot` | `pb-12.1` | **READY** |
-| **SkyHawk Recovery (SHRP)** | `shrp_X6871.mk` | `shrp_X6871-userdebug` | `vendor_boot` | `shrp-12.1` | **READY** |
-| **Lineage Recovery** | `lineage_X6871.mk` | `lineage_X6871-userdebug` | `vendor_boot` | `lineage-19.1` | **READY** |
-| **AOSP Recovery** | `aosp_X6871.mk` | `aosp_X6871-userdebug` | `vendor_boot` | `lineage-19.1` | **READY** |
+| **PitchBlack Recovery (PBRP)** | `pbrp_X6871.mk` | `pbrp_X6871-userdebug` | `vendor_boot` | `android-12.1` | **READY** |
+| **SkyHawk Recovery (SHRP)** | `shrp_X6871.mk` | `shrp_X6871-userdebug` | `vendor_boot` | `twrp-12.1` | **READY** |
+| **Lineage Recovery** | `lineage_X6871.mk` | `lineage_X6871-userdebug` | `vendor_boot` | `lineage-21.0` | **READY** |
+| **AOSP Recovery** | `aosp_X6871.mk` | `aosp_X6871-userdebug` | `vendor_boot` | `twrp-12.1` | **READY** |
 
 ---
 
