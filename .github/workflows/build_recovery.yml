@@ -160,6 +160,11 @@ jobs:
       - name: Compile Recovery Image
         run: |
           cd ~/work
+
+          # CRITICAL: Force clean out/ directory to prevent stale ninja cache
+          echo "=== Cleaning out/ directory for fresh build ==="
+          rm -rf out/
+
           export USE_CCACHE=1
           export CCACHE_DIR=~/.ccache
           export ALLOW_MISSING_DEPENDENCIES=true
@@ -171,34 +176,110 @@ jobs:
           ENGINE="${{ inputs.RECOVERY_ENGINE }}"
 
           case "$ENGINE" in
-            "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
-            "TWRP") LUNCH_TARGET="twrp_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
-            "PitchBlack") LUNCH_TARGET="pbrp_X6871-userdebug"; BUILD_TARGET="pbrp recoveryimage vendorbootimage" ;;
-            "SkyHawk") LUNCH_TARGET="shrp_X6871-userdebug"; BUILD_TARGET="shrp recoveryimage vendorbootimage" ;;
-            "LineageOS") LUNCH_TARGET="lineage_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
-            "AOSP") LUNCH_TARGET="aosp_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
-            *) LUNCH_TARGET="fox_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
+            "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug" ;;
+            "TWRP") LUNCH_TARGET="twrp_X6871-userdebug" ;;
+            "PitchBlack") LUNCH_TARGET="pbrp_X6871-userdebug" ;;
+            "SkyHawk") LUNCH_TARGET="shrp_X6871-userdebug" ;;
+            "LineageOS") LUNCH_TARGET="lineage_X6871-userdebug" ;;
+            "AOSP") LUNCH_TARGET="aosp_X6871-userdebug" ;;
+            *) LUNCH_TARGET="twrp_X6871-userdebug" ;;
           esac
 
-          echo "Launching build for target: $LUNCH_TARGET with build targets: $BUILD_TARGET"
+          echo "=== Launching build for target: $LUNCH_TARGET ==="
           lunch $LUNCH_TARGET
 
-          # Build engine targets & vendor_boot image
-          mka $BUILD_TARGET -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+          # Step 1: Build vendor_boot image (contains recovery for GKI v4 devices)
+          echo "=== Step 1: Building vendorbootimage ==="
+          mka vendorbootimage -j$(nproc --all) 2>&1 || true
+
+          # Step 2: Build recovery image (may be stub on GKI v4, but needed for packaging)
+          echo "=== Step 2: Building recoveryimage ==="
+          mka recoveryimage -j$(nproc --all) 2>&1 || true
+
+          # Step 3: Build boot image
+          echo "=== Step 3: Building bootimage ==="
+          mka bootimage -j$(nproc --all) 2>&1 || true
+
+          # Step 4: Build engine-specific packaging (PBRP zip, OrangeFox zip, etc.)
+          echo "=== Step 4: Building engine-specific packaging ==="
+          case "$ENGINE" in
+            "PitchBlack") mka pbrp -j$(nproc --all) 2>&1 || true ;;
+            "SkyHawk") mka shrp -j$(nproc --all) 2>&1 || true ;;
+            *) echo "No engine-specific packaging target for $ENGINE" ;;
+          esac
 
           echo "=== Ccache Statistics ==="
           ccache -s
+
+          # Debug: Show ALL generated images in out/target/product/
+          echo "=== DEBUG: All .img files in out/target/product/ ==="
+          find out/target/product/ -name "*.img" -exec ls -lh {} \; 2>/dev/null || echo "No .img files found"
+          echo "=== DEBUG: All .zip files in out/target/product/ ==="
+          find out/target/product/ -name "*.zip" -exec ls -lh {} \; 2>/dev/null || echo "No .zip files found"
+          echo "=== DEBUG: Full listing of out/target/product/X6871/ ==="
+          ls -lhR out/target/product/X6871/ 2>/dev/null | head -100 || echo "Product directory not found"
 
       - name: Prepare Build Artifacts
         run: |
           mkdir -p ~/artifacts
           echo "=== Searching for Build Outputs ==="
-          find /home/runner/work/ -type f \( -name "vendor_boot.img" -o -name "boot.img" -o -name "recovery.img" -o -name "*PBRP*.zip" -o -name "*OrangeFox*.zip" -o -name "*TWRP*.zip" -o -name "*SHRP*.zip" -o -name "*X6871*.zip" -o -name "*X6871*.img" \) -not -path "*/.git/*" -not -path "*/device/*" -exec cp {} ~/artifacts/ \; 2>/dev/null || true
+
+          # Search broadly for recovery artifacts in the build output tree
+          find ~/work/out/ -type f \( \
+            -name "vendor_boot.img" -o \
+            -name "boot.img" -o \
+            -name "recovery.img" -o \
+            -name "*.zip" \
+          \) -not -path "*/.git/*" 2>/dev/null | while read f; do
+            SIZE=$(stat -c%s "$f" 2>/dev/null || echo 0)
+            echo "Found: $f ($(numfmt --to=iec $SIZE))"
+            # Only copy files larger than 1MB (skip tiny stubs)
+            if [ "$SIZE" -gt 1048576 ]; then
+              cp "$f" ~/artifacts/
+              echo "  -> Copied to artifacts (real image)"
+            else
+              echo "  -> SKIPPED (too small, likely a stub)"
+            fi
+          done
+
+          # Also search the broader workspace for any generated images
+          find /home/runner/work/ -maxdepth 8 -type f -name "vendor_boot.img" -not -path "*/device/*" -not -path "*/.git/*" 2>/dev/null | while read f; do
+            SIZE=$(stat -c%s "$f" 2>/dev/null || echo 0)
+            if [ "$SIZE" -gt 1048576 ]; then
+              echo "Found vendor_boot.img: $f ($(numfmt --to=iec $SIZE))"
+              cp "$f" ~/artifacts/
+            fi
+          done
+
+          # If no real images found, fall back to copying everything (for debugging)
+          if [ -z "$(ls -A ~/artifacts/ 2>/dev/null)" ]; then
+            echo "WARNING: No large images found! Copying all outputs for debugging..."
+            find ~/work/out/target/product/X6871/ -maxdepth 1 -type f \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \; 2>/dev/null || true
+          fi
+
           echo "=== Prepared Artifacts ==="
           ls -lh ~/artifacts/
-          if [ -z "$(ls -A ~/artifacts/)" ]; then
-            echo "ERROR: No build artifacts found!"
+
+          if [ -z "$(ls -A ~/artifacts/ 2>/dev/null)" ]; then
+            echo "ERROR: No build artifacts found at all!"
+            echo "=== Full out/target/product/ listing for debugging ==="
+            find ~/work/out/target/product/ -type f -name "*.img" -exec ls -lh {} \; 2>/dev/null || echo "No product output found"
             exit 1
+          fi
+
+          # Validate vendor_boot.img exists and is reasonable size
+          if [ -f ~/artifacts/vendor_boot.img ]; then
+            VB_SIZE=$(stat -c%s ~/artifacts/vendor_boot.img)
+            echo "vendor_boot.img size: $VB_SIZE bytes ($(numfmt --to=iec $VB_SIZE))"
+            if [ "$VB_SIZE" -lt 10000000 ]; then
+              echo "WARNING: vendor_boot.img is suspiciously small ($VB_SIZE bytes)"
+            else
+              echo "vendor_boot.img looks good! Ready for fastboot flash vendor_boot"
+            fi
+          else
+            echo "WARNING: vendor_boot.img not found in artifacts!"
+            echo "This device uses vendor_boot as recovery partition."
+            echo "Check build log debug output above for clues."
           fi
 
       - name: Upload Recovery Artifacts
