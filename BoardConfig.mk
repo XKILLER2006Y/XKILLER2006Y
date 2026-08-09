@@ -6,6 +6,9 @@
 
 DEVICE_PATH := device/infinix/X6871
 
+# Enable Missing Dependencies Override for Recovery Minimal Manifests
+ALLOW_MISSING_DEPENDENCIES := true
+
 # Architecture & CPU Configuration
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a

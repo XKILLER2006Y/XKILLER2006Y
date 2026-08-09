@@ -23,6 +23,7 @@ on:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   build:
@@ -149,6 +150,8 @@ jobs:
           cd ~/work
           export USE_CCACHE=1
           export CCACHE_DIR=~/.ccache
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export SOONG_ALLOW_MISSING_DEPENDENCIES=true
           ccache -M 3G
           ccache -z
 
