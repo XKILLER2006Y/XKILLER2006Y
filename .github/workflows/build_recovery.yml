@@ -1,10 +1,10 @@
-name: Build Universal Recovery (TWRP / OrangeFox / PBRP / SHRP / Lineage)
+name: Build Universal Custom Recovery (TWRP / OrangeFox / PBRP / SHRP / Lineage)
 
 on:
   workflow_dispatch:
     inputs:
       RECOVERY_ENGINE:
-        description: 'Select Recovery Framework to Build'
+        description: 'Select Custom Recovery Framework'
         required: true
         default: 'OrangeFox'
         type: choice
@@ -16,42 +16,93 @@ on:
           - LineageOS
           - AOSP
       MANIFEST_BRANCH:
-        description: 'Manifest Branch (e.g. fox_12.1, twrp-12.1, pb-12.1, shrp-12.1, lineage-19.1)'
-        required: true
-        default: 'fox_12.1'
+        description: 'Manifest Branch (Leave empty for engine default: Fox=fox_12.1, TWRP=twrp-12.1, PBRP=pb-12.1, SHRP=shrp-12.1, Lineage=lineage-19.1)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
     name: Build Recovery Image
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout Device Tree
         uses: actions/checkout@v4
         with:
           path: device/infinix/X6871
 
-      - name: Setup Build Environment
+      - name: Free Disk Space (Reclaim 40+ GB)
+        run: |
+          echo "=== Disk Space Before Cleanup ==="
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force || true
+          sudo apt-get clean
+          echo "=== Disk Space After Cleanup ==="
+          df -h
+
+      - name: Setup Build Environment & Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf lib32ncurses5-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+          sudo apt-get install -y \
+            bc bison build-essential ccache curl flex g++-multilib gcc-multilib \
+            git gnupg gperf lib32ncurses5-dev lib32z1-dev liblz4-tool libncurses5 \
+            libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop \
+            pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
+            python3 python3-pip repo
+
+      - name: Setup Persistent Ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ github.event.inputs.RECOVERY_ENGINE }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ github.event.inputs.RECOVERY_ENGINE }}-
+            ccache-
 
       - name: Sync Recovery Manifest
         run: |
           mkdir -p ~/work && cd ~/work
           ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
           BRANCH="${{ github.event.inputs.MANIFEST_BRANCH }}"
-          
-          if [ "$ENGINE" = "OrangeFox" ]; then
-            repo init -u https://gitlab.com/OrangeFox/Manifest.git -b $BRANCH
-          elif [ "$ENGINE" = "TWRP" ]; then
-            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH
-          elif [ "$ENGINE" = "PitchBlack" ]; then
-            repo init -u https://github.com/PitchBlackRecoveryProject/manifest_pb.git -b $BRANCH
-          elif [ "$ENGINE" = "SkyHawk" ]; then
-            repo init -u https://github.com/SHRP/platform_manifest_twrp_aosp.git -b $BRANCH
-          elif [ "$ENGINE" = "LineageOS" ] || [ "$ENGINE" = "AOSP" ]; then
-            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH
+
+          # Dynamic Branch Fallback if MANIFEST_BRANCH is left empty in UI modal
+          if [ -z "$BRANCH" ]; then
+            case "$ENGINE" in
+              "OrangeFox") BRANCH="fox_12.1" ;;
+              "TWRP") BRANCH="twrp-12.1" ;;
+              "PitchBlack") BRANCH="pb-12.1" ;;
+              "SkyHawk") BRANCH="shrp-12.1" ;;
+              "LineageOS"|"AOSP") BRANCH="lineage-19.1" ;;
+              *) BRANCH="fox_12.1" ;;
+            esac
           fi
+
+          echo "Selected Recovery Engine: $ENGINE"
+          echo "Using Manifest Branch: $BRANCH"
+
+          if [ "$ENGINE" = "OrangeFox" ]; then
+            repo init -u https://gitlab.com/OrangeFox/Manifest.git -b $BRANCH --depth=1
+          elif [ "$ENGINE" = "TWRP" ]; then
+            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
+          elif [ "$ENGINE" = "PitchBlack" ]; then
+            repo init -u https://github.com/PitchBlackRecoveryProject/manifest_pb.git -b $BRANCH --depth=1
+          elif [ "$ENGINE" = "SkyHawk" ]; then
+            repo init -u https://github.com/SHRP/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
+          elif [ "$ENGINE" = "LineageOS" ] || [ "$ENGINE" = "AOSP" ]; then
+            repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
+          fi
+
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
       - name: Copy Device Tree
@@ -62,26 +113,43 @@ jobs:
       - name: Compile Recovery Image
         run: |
           cd ~/work
+          export USE_CCACHE=1
+          export CCACHE_DIR=~/.ccache
+          ccache -M 10G
+          ccache -z
+
           source build/envsetup.sh
           ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
-          
-          if [ "$ENGINE" = "OrangeFox" ]; then
-            lunch fox_X6871-userdebug
-          elif [ "$ENGINE" = "TWRP" ]; then
-            lunch twrp_X6871-userdebug
-          elif [ "$ENGINE" = "PitchBlack" ]; then
-            lunch pbrp_X6871-userdebug
-          elif [ "$ENGINE" = "SkyHawk" ]; then
-            lunch shrp_X6871-userdebug
-          elif [ "$ENGINE" = "LineageOS" ]; then
-            lunch lineage_X6871-userdebug
-          elif [ "$ENGINE" = "AOSP" ]; then
-            lunch aosp_X6871-userdebug
-          fi
-          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
 
-      - name: Upload Recovery Artifact
+          case "$ENGINE" in
+            "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug" ;;
+            "TWRP") LUNCH_TARGET="twrp_X6871-userdebug" ;;
+            "PitchBlack") LUNCH_TARGET="pbrp_X6871-userdebug" ;;
+            "SkyHawk") LUNCH_TARGET="shrp_X6871-userdebug" ;;
+            "LineageOS") LUNCH_TARGET="lineage_X6871-userdebug" ;;
+            "AOSP") LUNCH_TARGET="aosp_X6871-userdebug" ;;
+            *) LUNCH_TARGET="fox_X6871-userdebug" ;;
+          esac
+
+          echo "Launching build for target: $LUNCH_TARGET"
+          lunch $LUNCH_TARGET
+
+          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all)
+
+          echo "=== Ccache Statistics ==="
+          ccache -s
+
+      - name: Prepare Build Artifacts
+        run: |
+          mkdir -p ~/artifacts
+          find ~/work/out/target/product/X6871/ -maxdepth 1 \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \; || true
+          echo "=== Prepared Artifacts ==="
+          ls -lh ~/artifacts/
+
+      - name: Upload Recovery Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Recovery-Image-${{ github.event.inputs.RECOVERY_ENGINE }}-X6871
-          path: /home/runner/work/out/target/product/X6871/*.img
+          name: Recovery-${{ github.event.inputs.RECOVERY_ENGINE }}-X6871-${{ github.run_id }}
+          path: ~/artifacts/*
+          if-no-files-found: warn
+          compression-level: 6

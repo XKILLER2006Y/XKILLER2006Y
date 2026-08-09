@@ -11,14 +11,14 @@ Unified, production-grade custom recovery device tree for compiling **TWRP**, **
 
 ## Supported Recovery Framework Matrix
 
-| Recovery Engine | Target Makefile | Lunch Target | Output Partition | Status |
-| :--- | :--- | :--- | :--- | :---: |
-| **TWRP (11 / 12 / 12.1)** | `twrp_X6871.mk` | `twrp_X6871-userdebug` | `vendor_boot` | **READY** |
-| **OrangeFox Recovery (R11 / R12)** | `fox_X6871.mk` | `fox_X6871-userdebug` | `vendor_boot` | **READY** |
-| **PitchBlack Recovery (PBRP)** | `pbrp_X6871.mk` | `pbrp_X6871-userdebug` | `vendor_boot` | **READY** |
-| **SkyHawk Recovery (SHRP)** | `shrp_X6871.mk` | `shrp_X6871-userdebug` | `vendor_boot` | **READY** |
-| **Lineage Recovery** | `lineage_X6871.mk` | `lineage_X6871-userdebug` | `vendor_boot` | **READY** |
-| **AOSP Recovery** | `aosp_X6871.mk` | `aosp_X6871-userdebug` | `vendor_boot` | **READY** |
+| Recovery Engine | Target Makefile | Lunch Target | Output Partition | Default Branch | Status |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| **TWRP (11 / 12 / 12.1)** | `twrp_X6871.mk` | `twrp_X6871-userdebug` | `vendor_boot` | `twrp-12.1` | **READY** |
+| **OrangeFox Recovery (R11 / R12)** | `fox_X6871.mk` | `fox_X6871-userdebug` | `vendor_boot` | `fox_12.1` | **READY** |
+| **PitchBlack Recovery (PBRP)** | `pbrp_X6871.mk` | `pbrp_X6871-userdebug` | `vendor_boot` | `pb-12.1` | **READY** |
+| **SkyHawk Recovery (SHRP)** | `shrp_X6871.mk` | `shrp_X6871-userdebug` | `vendor_boot` | `shrp-12.1` | **READY** |
+| **Lineage Recovery** | `lineage_X6871.mk` | `lineage_X6871-userdebug` | `vendor_boot` | `lineage-19.1` | **READY** |
+| **AOSP Recovery** | `aosp_X6871.mk` | `aosp_X6871-userdebug` | `vendor_boot` | `lineage-19.1` | **READY** |
 
 ---
 
@@ -28,7 +28,7 @@ Unified, production-grade custom recovery device tree for compiling **TWRP**, **
 device/infinix/X6871/
 ├── .github/
 │   └── workflows/
-│       └── build_recovery.yml          # GitHub Actions Automated Cloud Compiler
+│       └── build_recovery.yml          # GitHub Actions Automated Cloud Compiler (40GB+ Free Disk, ccache)
 ├── Android.mk                           # Top-level makefile entry
 ├── AndroidProducts.mk                   # Product registry for all recovery engines
 ├── BoardConfig.mk                       # Unified hardware platform & super partition math
@@ -44,10 +44,22 @@ device/infinix/X6871/
 ├── recovery.fstab                       # FBE v2, EROFS, EXT4, F2FS partition table
 ├── twrp.flags                           # TWRP/Fox graphical partition routes & removable drives
 ├── system.prop                          # Recovery hardware & USB controller properties
-├── README.md                            # GitHub repository front page
+├── README.md                            # GitHub repository documentation
 └── prebuilt/
     └── dtb                              # Official stock MediaTek MT6896 kernel DTB (318,821 bytes)
 ```
+
+---
+
+## GitHub Actions Automated Cloud Build
+
+The repository includes a GitHub Actions workflow (`.github/workflows/build_recovery.yml`) supporting manual dispatch (`workflow_dispatch`).
+
+### Features:
+1. **Clean UI Modal Input**: `MANIFEST_BRANCH` can be left blank; the workflow automatically detects and selects the ideal branch for your selected engine (`fox_12.1`, `twrp-12.1`, `pb-12.1`, `shrp-12.1`, `lineage-19.1`).
+2. **Reclaim 40+ GB Disk Space**: Automatically strips unnecessary runner packages (Android SDK, Dotnet, Haskell, Docker caches) before repo sync.
+3. **Persistent ccache**: Speeds up repeated runs by caching compilation objects across workflow dispatches (`~/.ccache`).
+4. **Clean Artifact Output**: Safely staging and uploading built images (`vendor_boot.img`, `recovery.img`, `.zip`) with artifact compression.
 
 ---
 
@@ -70,12 +82,12 @@ git push -u origin main
 
 ---
 
-## Compiling locally on Linux
+## Compiling Locally on Linux
 
 ```bash
 # Set up workspace & clone tree
 mkdir -p ~/recovery && cd ~/recovery
-repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_12.1
+repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_12.1 --depth=1
 repo sync -c -j$(nproc --all)
 
 mkdir -p device/infinix/X6871
@@ -84,7 +96,7 @@ git clone https://github.com/YOUR_USERNAME/android_device_infinix_X6871.git devi
 # Build OrangeFox
 source build/envsetup.sh
 lunch fox_X6871-userdebug
-mka recoveryimage -j$(nproc --all)
+mka recoveryimage vendorbootimage -j$(nproc --all)
 ```
 
 ---
