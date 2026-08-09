@@ -1,29 +1,35 @@
-# System Properties for Infinix GT 20 Pro (X6871) Universal Recovery
-ro.product.brand=Infinix
-ro.product.manufacturer=INFINIX
-ro.product.model=Infinix X6871
-ro.product.device=X6871
+#
+# System Properties for Infinix GT 20 Pro (X6871) Recovery
+#
 
+# Hardware Platform
 ro.board.platform=mt6896
 ro.hardware=mt6896
-ro.hardware.egl=meow
-ro.hardware.vulkan=mali
 
-ro.hardware.gatekeeper=trustonic
-ro.hardware.kmsetkey=trustonic
-ro.hardware.paytrigger=trustonic
-
+# Display & Refresh Rate Lock (Raydium RM69220 144Hz AMOLED)
 ro.sf.lcd_density=480
 ro.vendor.tran.display.pixelworks.support=1
+ro.surface_flinger.set_idle_timer_ms=0
+ro.surface_flinger.set_touch_timer_ms=0
+ro.surface_flinger.set_display_power_timer_ms=0
+debug.sf.fps=60
 
+# Haptics Routing
+sys.vibrator.path=/sys/class/leds/vibrator_single
+
+# USB ConfigFS Controller
 sys.usb.controller=11201000.usb0
+sys.usb.configfs=1
 sys.usb.ffs.aio_compat=0
-ro.sys.usb.storage.type=mtp
 
+# Dynamic Partitions
 ro.boot.dynamic_partitions=true
+ro.boot.boot_devices=bootdevice,112b0000.ufshci,soctype
+
+# Virtual A/B Compression
 ro.virtual_ab.enabled=true
 ro.virtual_ab.compression.enabled=true
 
+# Security & TEE Decryption
 ro.crypto.state=encrypted
 ro.crypto.type=file
-ro.crypto.volume.filenames_mode=aes-256-cts

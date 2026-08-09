@@ -81,6 +81,10 @@ TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
 TW_MAX_BRIGHTNESS := 2047
 TW_DEFAULT_BRIGHTNESS := 1200
 
+# Haptics & Vibration Configuration (AWINIC Linear Haptics)
+CUSTOM_VIBRATOR_PATH := /sys/class/leds/vibrator_single
+TW_LEDS_PATH := /sys/class/leds/vibrator_single
+
 # Universal TWRP Feature Flags
 RECOVERY_SDCARD_ON_DATA := true
 TW_EXCLUDE_DEFAULT_USB_INIT := true
