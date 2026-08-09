@@ -171,20 +171,20 @@ jobs:
           ENGINE="${{ inputs.RECOVERY_ENGINE }}"
 
           case "$ENGINE" in
-            "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug" ;;
-            "TWRP") LUNCH_TARGET="twrp_X6871-userdebug" ;;
-            "PitchBlack") LUNCH_TARGET="pbrp_X6871-userdebug" ;;
-            "SkyHawk") LUNCH_TARGET="shrp_X6871-userdebug" ;;
-            "LineageOS") LUNCH_TARGET="lineage_X6871-userdebug" ;;
-            "AOSP") LUNCH_TARGET="aosp_X6871-userdebug" ;;
-            *) LUNCH_TARGET="fox_X6871-userdebug" ;;
+            "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
+            "TWRP") LUNCH_TARGET="twrp_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
+            "PitchBlack") LUNCH_TARGET="pbrp_X6871-userdebug"; BUILD_TARGET="pbrp recoveryimage vendorbootimage" ;;
+            "SkyHawk") LUNCH_TARGET="shrp_X6871-userdebug"; BUILD_TARGET="shrp recoveryimage vendorbootimage" ;;
+            "LineageOS") LUNCH_TARGET="lineage_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
+            "AOSP") LUNCH_TARGET="aosp_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
+            *) LUNCH_TARGET="fox_X6871-userdebug"; BUILD_TARGET="recoveryimage vendorbootimage" ;;
           esac
 
-          echo "Launching build for target: $LUNCH_TARGET"
+          echo "Launching build for target: $LUNCH_TARGET with build targets: $BUILD_TARGET"
           lunch $LUNCH_TARGET
 
-          # Build recovery image & vendor_boot image
-          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+          # Build engine targets & vendor_boot image
+          mka $BUILD_TARGET -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
 
           echo "=== Ccache Statistics ==="
           ccache -s
@@ -192,7 +192,8 @@ jobs:
       - name: Prepare Build Artifacts
         run: |
           mkdir -p ~/artifacts
-          find ~/work/out/target/product/ -type f \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \;
+          echo "=== Searching for Build Outputs ==="
+          find ~/work/ -type f \( -name "*.img" -o -name "*.zip" \) -not -path "*/.git/*" -not -path "*/device/*" -exec cp {} ~/artifacts/ \; 2>/dev/null || true
           echo "=== Prepared Artifacts ==="
           ls -lh ~/artifacts/
           if [ -z "$(ls -A ~/artifacts/)" ]; then
