@@ -28,8 +28,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Init Scripts Installation
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6895.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6895.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6896.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6896.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.usb.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.usb.rc
-
-# Verified GKI v4 Target
+    $(LOCAL_PATH)/recovery/root/init.recovery.mt6895.rc:recovery/root/init.recovery.mt6895.rc \
+    $(LOCAL_PATH)/recovery/root/init.recovery.mt6896.rc:recovery/root/init.recovery.mt6896.rc \
+    $(LOCAL_PATH)/recovery/root/init.recovery.usb.rc:recovery/root/init.recovery.usb.rc

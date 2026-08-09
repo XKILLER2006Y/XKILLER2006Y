@@ -188,24 +188,16 @@ jobs:
           echo "=== Launching build for target: $LUNCH_TARGET ==="
           lunch $LUNCH_TARGET
 
-          # Step 1: Build vendor_boot image (primary recovery for GKI v4 devices)
-          echo "=== Step 1: Building vendorbootimage ==="
-          mka vendorbootimage -j$(nproc --all) 2>&1 || true
+          # Build recovery, vendor_boot, and boot images
+          echo "=== Building Recovery & Vendor Boot Targets ==="
+          mka vendorbootimage recoveryimage bootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all)
 
-          # Step 2: Build recovery image
-          echo "=== Step 2: Building recoveryimage ==="
-          mka recoveryimage -j$(nproc --all) 2>&1 || true
-
-          # Step 3: Build boot image
-          echo "=== Step 3: Building bootimage ==="
-          mka bootimage -j$(nproc --all) 2>&1 || true
-
-          # Step 4: Build engine-specific packaging (PBRP zip, OrangeFox zip, etc.)
-          echo "=== Step 4: Building engine-specific packaging ==="
+          # Build engine-specific packaging (PBRP zip, OrangeFox zip, etc.)
+          echo "=== Building Engine Packaging ==="
           case "$ENGINE" in
-            "PitchBlack") mka pbrp -j$(nproc --all) 2>&1 || true ;;
-            "SkyHawk") mka shrp -j$(nproc --all) 2>&1 || true ;;
-            *) echo "No engine-specific packaging target for $ENGINE" ;;
+            "PitchBlack") mka pbrp -j$(nproc --all) || true ;;
+            "SkyHawk") mka shrp -j$(nproc --all) || true ;;
+            "OrangeFox") mka recoveryimage -j$(nproc --all) || true ;;
           esac
 
           echo "=== Ccache Statistics ==="
