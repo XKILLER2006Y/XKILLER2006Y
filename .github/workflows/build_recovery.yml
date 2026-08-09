@@ -193,7 +193,7 @@ jobs:
         run: |
           mkdir -p ~/artifacts
           echo "=== Searching for Build Outputs ==="
-          find ~/work/ -type f \( -name "*.img" -o -name "*.zip" \) -not -path "*/.git/*" -not -path "*/device/*" -exec cp {} ~/artifacts/ \; 2>/dev/null || true
+          find ~/work/out/target/product/ -type f \( -name "*.img" -o -name "*.zip" \) -not -path "*/obj/*" -not -path "*/symbols/*" -not -path "*/dex_*/*" -exec cp {} ~/artifacts/ \; 2>/dev/null || true
           echo "=== Prepared Artifacts ==="
           ls -lh ~/artifacts/
           if [ -z "$(ls -A ~/artifacts/)" ]; then
