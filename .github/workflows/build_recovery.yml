@@ -105,6 +105,11 @@ jobs:
 
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
+      - name: Clone Missing Dependencies (gflags)
+        run: |
+          cd ~/work
+          git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 external/gflags || true
+
       - name: Copy Device Tree
         run: |
           mkdir -p ~/work/device/infinix/X6871
