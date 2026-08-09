@@ -3,9 +3,14 @@
 #
 
 # Hardware Platform (MT6896/Dimensity 8200 uses mt6895 BSP platform code)
+# Source: Stock vendor/build.prop
 ro.board.platform=mt6895
 ro.hardware=mt6895
 ro.product.board=Infinix-X6871
+ro.product.vendor.device=Infinix-X6871
+ro.vendor.mediatek.platform=MT6895
+ro.hardware.gatekeeper=trustonic
+ro.hardware.kmsetkey=trustonic
 
 # Display & Refresh Rate Lock (Raydium RM69220 144Hz AMOLED)
 ro.sf.lcd_density=480

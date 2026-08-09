@@ -16,7 +16,7 @@ on:
           - LineageOS
           - AOSP
       MANIFEST_BRANCH:
-        description: 'Branch (Leave empty for auto-detect: Fox=fox_12.1, TWRP=twrp-12.1, PBRP=android-12.1, SHRP=v3.2_12.1, Lineage=lineage-21.0, AOSP=twrp-12.1)'
+        description: 'Branch (Leave empty for auto-detect: Fox=fox_12.1, TWRP=twrp-12.1, PBRP=android-12.1, SHRP=twrp-12.1, Lineage=lineage-21.0, AOSP=twrp-12.1)'
         required: false
         default: ''
         type: string
@@ -24,7 +24,7 @@ on:
 jobs:
   build:
     name: Build Recovery Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
 
@@ -45,8 +45,10 @@ jobs:
           sudo rm -rf /usr/share/swift
           sudo rm -rf /usr/local/.ghcup
           sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf /usr/share/codeql
+          sudo rm -rf /usr/local/lib/node_modules
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo docker image prune --all --force || true
+          sudo docker image prune --all --force 2>/dev/null || true
           sudo apt-get clean
           echo "=== Disk Space After Cleanup ==="
           df -h
@@ -59,22 +61,27 @@ jobs:
             git gnupg gperf lib32ncurses5-dev lib32z1-dev liblz4-tool libncurses5 \
             libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop \
             pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
-            python3 python3-pip repo
+            python3 python3-pip openjdk-11-jdk
+          # Install Google repo tool (not available via apt)
+          mkdir -p ~/bin
+          curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod +x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Setup Persistent Ccache
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: ccache-${{ github.event.inputs.RECOVERY_ENGINE }}-${{ github.sha }}
+          key: ccache-${{ inputs.RECOVERY_ENGINE }}-${{ github.sha }}
           restore-keys: |
-            ccache-${{ github.event.inputs.RECOVERY_ENGINE }}-
+            ccache-${{ inputs.RECOVERY_ENGINE }}-
             ccache-
 
       - name: Sync Recovery Manifest
         run: |
           mkdir -p ~/work && cd ~/work
-          ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
-          BRANCH="${{ github.event.inputs.MANIFEST_BRANCH }}"
+          ENGINE="${{ inputs.RECOVERY_ENGINE }}"
+          BRANCH="${{ inputs.MANIFEST_BRANCH }}"
 
           # Dynamic Branch Fallback if MANIFEST_BRANCH is left empty in UI modal
           if [ -z "$BRANCH" ]; then
@@ -82,7 +89,7 @@ jobs:
               "OrangeFox") BRANCH="fox_12.1" ;;
               "TWRP") BRANCH="twrp-12.1" ;;
               "PitchBlack") BRANCH="android-12.1" ;;
-              "SkyHawk") BRANCH="v3.2_12.1" ;;
+              "SkyHawk") BRANCH="twrp-12.1" ;;
               "LineageOS") BRANCH="lineage-21.0" ;;
               "AOSP") BRANCH="twrp-12.1" ;;
               *) BRANCH="fox_12.1" ;;
@@ -99,7 +106,7 @@ jobs:
           elif [ "$ENGINE" = "PitchBlack" ]; then
             repo init -u https://github.com/PitchBlackRecoveryProject/manifest_pb.git -b $BRANCH --depth=1
           elif [ "$ENGINE" = "SkyHawk" ]; then
-            repo init -u https://github.com/SHRP/platform_manifest_twrp_aosp.git -b $BRANCH --depth=1
+            repo init -u https://github.com/SHRP/platform_manifest_twrp_omni.git -b $BRANCH --depth=1
           elif [ "$ENGINE" = "LineageOS" ]; then
             repo init -u https://github.com/LineageOS/android.git -b $BRANCH --depth=1
           elif [ "$ENGINE" = "AOSP" ]; then
@@ -111,7 +118,9 @@ jobs:
       - name: Clone Missing Dependencies (gflags)
         run: |
           cd ~/work
-          git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 external/gflags || true
+          if [ ! -d "external/gflags" ]; then
+            git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 external/gflags
+          fi
 
       - name: Copy Device Tree
         run: |
@@ -123,11 +132,11 @@ jobs:
           cd ~/work
           export USE_CCACHE=1
           export CCACHE_DIR=~/.ccache
-          ccache -M 10G
+          ccache -M 3G
           ccache -z
 
           source build/envsetup.sh
-          ENGINE="${{ github.event.inputs.RECOVERY_ENGINE }}"
+          ENGINE="${{ inputs.RECOVERY_ENGINE }}"
 
           case "$ENGINE" in
             "OrangeFox") LUNCH_TARGET="fox_X6871-userdebug" ;;
@@ -142,7 +151,8 @@ jobs:
           echo "Launching build for target: $LUNCH_TARGET"
           lunch $LUNCH_TARGET
 
-          mka recoveryimage vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all) || mka vendorbootimage -j$(nproc --all)
+          # Build vendor_boot (GKI v4 recovery) with fallback to recoveryimage
+          mka vendorbootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
 
           echo "=== Ccache Statistics ==="
           ccache -s
@@ -150,14 +160,19 @@ jobs:
       - name: Prepare Build Artifacts
         run: |
           mkdir -p ~/artifacts
-          find ~/work/out/target/product/X6871/ -maxdepth 1 \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \; || true
+          find ~/work/out/target/product/X6871/ \( -name "*.img" -o -name "*.zip" \) -exec cp {} ~/artifacts/ \;
           echo "=== Prepared Artifacts ==="
           ls -lh ~/artifacts/
+          # Fail if no artifacts were produced
+          if [ -z "$(ls -A ~/artifacts/)" ]; then
+            echo "ERROR: No build artifacts found!"
+            exit 1
+          fi
 
       - name: Upload Recovery Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Recovery-${{ github.event.inputs.RECOVERY_ENGINE }}-X6871-${{ github.run_id }}
+          name: Recovery-${{ inputs.RECOVERY_ENGINE }}-X6871-${{ github.run_id }}
           path: ~/artifacts/*
-          if-no-files-found: warn
+          if-no-files-found: error
           compression-level: 6
