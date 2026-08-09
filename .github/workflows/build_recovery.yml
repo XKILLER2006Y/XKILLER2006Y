@@ -169,7 +169,7 @@ jobs:
           export CCACHE_DIR=~/.ccache
           export ALLOW_MISSING_DEPENDENCIES=true
           export SOONG_ALLOW_MISSING_DEPENDENCIES=true
-          ccache -M 3G
+          ccache -M 10G
           ccache -z
 
           source build/envsetup.sh
