@@ -169,6 +169,8 @@ jobs:
           export CCACHE_DIR=~/.ccache
           export ALLOW_MISSING_DEPENDENCIES=true
           export SOONG_ALLOW_MISSING_DEPENDENCIES=true
+          export BUILD_BROKEN_DUP_RULES=true
+          export BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES=true
           ccache -M 10G
           ccache -z
 

@@ -25,9 +25,3 @@ PRODUCT_SHIPPING_API_LEVEL := 31
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=480 \
     ro.recovery.ui.margin_height=126
-
-# Init Scripts Installation
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6895.rc:recovery/root/init.recovery.mt6895.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.mt6896.rc:recovery/root/init.recovery.mt6896.rc \
-    $(LOCAL_PATH)/recovery/root/init.recovery.usb.rc:recovery/root/init.recovery.usb.rc
