@@ -47,7 +47,7 @@ BOARD_USES_GENERIC_KERNEL_IMAGE := true
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
 BOARD_PREBUILT_DTBIMAGE := $(DEVICE_PATH)/prebuilt/dtb
 
-# Dynamic Super Partitions Setup (Standard + Transsion Regional Extensions)
+# Dynamic Super Partitions Setup
 BOARD_SUPER_PARTITION_SIZE := 9126805504
 BOARD_SUPER_PARTITION_GROUPS := main
 BOARD_MAIN_SIZE := 9122611200
@@ -57,15 +57,7 @@ BOARD_MAIN_PARTITION_LIST := \
     vendor \
     product \
     vendor_dlkm \
-    odm_dlkm \
-    tr_mi \
-    tr_theme \
-    tr_region \
-    tr_company \
-    tr_carrier \
-    tr_product \
-    tr_preload \
-    tr_overlayfs
+    odm_dlkm
 
 # File Systems & EROFS Support
 BOARD_HAS_LARGE_FILESYSTEM := true
